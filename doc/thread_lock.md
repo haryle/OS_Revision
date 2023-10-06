@@ -109,3 +109,14 @@ The `lock` routine is similar to Test-And-Set:
 ![](pic/Compare-And-Swap.png)
 
 Behaviour is similar to Test-And-Set, but is useful for `lock-free-synchronisation`. 
+
+### Solution: Load-linked and Store-Conditional: 
+
+![](pic/Figure28.5.png)
+
+![](pic/Figure28.6.png)
+
+- Platform-specififc instruction 
+- Addressed the failure situation shown in Figure 28.2. 
+    - When the lock is free and by some interrupt events, two threads arrive at line 5, only one can enter the critical section.
+    - The `StoreConditional` ensures that if another thread has acquired the flag, the expression on line 5 evaluates to False. 

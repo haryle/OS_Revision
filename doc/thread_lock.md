@@ -47,7 +47,7 @@
     - An OS itself use interrupt masking to guarantee atomicity when accessing its own data structures or prevent messy interrupt handling situations.
     - No trust issue as the OS is the one performing the privillege operations. 
 
-### Soluition - Using loads/stores 
+### Solution - Using loads/stores 
 
 - Use a simple `flag` to indicate whether a lock has been acquired.
 - When a thread enters a critical section:
@@ -132,3 +132,29 @@ Behaviour is similar to Test-And-Set, but is useful for `lock-free-synchronisati
 - Unlock increments `lock->turn`. 
 - The `FetchAndAdd` primitive ensures that each thread is assigned a unique id. 
 - The difference between `FetchAndAdd` and other solutions is this ensures every thread can take a turn at the critical section (fairness). 
+
+## Avoid Spinning 
+
+### Solution: yield primitive 
+
+![](pic/Figure28.8.png)
+
+- Yield allows the current thread to gives up CPU and let other thread run. 
+- Deschedules itself: change the state from `running` to `ready`.
+- Promotes other threads to running. 
+- Assume 100 thread with 1 thread running the critical section, the other 99 threads will execute the condition checking into yielding.
+- While better than spin-lock, this is still wasteful, as the cost of a context switch can be substantial. 
+- Still does not tackle starvation. A thread may get stuck in endless yield loop while other repeatedly enters and exits the critical s ection. 
+- Leave too much to chance: the scheduler determines what get to be run. Hence if it makes a bad choice, starvation may ensue. 
+
+### Solution: sleep 
+
+![](pic/Figure28.9.png)
+![](pic/Using-Queue-Lock.png)
+
+This approach does the following: 
+- Exert explicit control over which thread gets to acquire the lock after the current one releases it.
+- Use a queue to keep track of which threads are waiting to acquire the lock. 
+- Primitive: 
+    - `park()` to put a calling thread to sleep. Similar to java `Thread.sleep()`.
+    - `unpark()` to wake up a sleeping thread. Similar to Java `Thread.interupt()`

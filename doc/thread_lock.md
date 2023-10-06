@@ -120,3 +120,15 @@ Behaviour is similar to Test-And-Set, but is useful for `lock-free-synchronisati
 - Addressed the failure situation shown in Figure 28.2. 
     - When the lock is free and by some interrupt events, two threads arrive at line 5, only one can enter the critical section.
     - The `StoreConditional` ensures that if another thread has acquired the flag, the expression on line 5 evaluates to False. 
+
+### Fetch-and-Add 
+
+![](pic/Fetch-And-Add.png)
+
+![](pic/Figure28.7.png)
+
+- Lock contains `ticket` which represents the thread whose id `myturn` can acquire the lock. 
+- Lock primitive assign an id value `myturn` to a thread, who spin-waits until `lock->turn` is `myturn`, at which point it can enter the critical section.
+- Unlock increments `lock->turn`. 
+- The `FetchAndAdd` primitive ensures that each thread is assigned a unique id. 
+- The difference between `FetchAndAdd` and other solutions is this ensures every thread can take a turn at the critical section (fairness). 

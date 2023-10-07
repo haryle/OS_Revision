@@ -10,6 +10,18 @@ sum:
     - gcc -DMAXTHREAD=$(max_thread) -DN=$(n) -Wall -o $(out)/$(program).o $(src)/$(program).c
     - ./$(out)/$(program).o
 
+data:
+  var:
+    basic:
+      program: null 
+      src: code 
+      out: out
+      lib: data_structures
+      CPUCOUNT: 4
+  cmd:
+    - gcc $(src)/$(program)Test.c $(src)/$(lib)/$(program).c -pthread -o out/$(program)Test.o -Wall -DCPUCOUNT=$(CPUCOUNT)
+    - ./$(out)/$(program)Test.o
+
 clean:
   cmd:
     - rm -rf out/*

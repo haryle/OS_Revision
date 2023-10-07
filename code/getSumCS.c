@@ -7,8 +7,13 @@ Hoang Son Le a1691819 7/10/20203
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAXTHREAD 10
-#define N 100000
+#ifndef MAXTHREAD
+    #define MAXTHREAD 4
+#endif
+
+#ifndef N
+    #define N 1000
+#endif
 
 int array[N];
 int params[MAXTHREAD]; 

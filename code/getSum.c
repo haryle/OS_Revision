@@ -6,8 +6,13 @@ Pass a struct as input argument to a function run with pthread_create
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAXTHREAD 4
-#define N 1000
+#ifndef MAXTHREAD
+    #define MAXTHREAD 4
+#endif
+
+#ifndef N
+    #define N 1000
+#endif
 
 typedef struct {
     int* array;
@@ -41,12 +46,12 @@ vector_t sub_vector(vector_t* parent, int start, int end) {
 
 void* getSum(void* args) {
     vector_t* vector = (vector_t*)args;
-    int* local_sum = (int*)malloc(sizeof(int));
+    long long int* local_sum = (long long int*)malloc(sizeof(long long int));
     *local_sum = 0;
     for (int i = vector->start; i < vector->end; i++)
         *local_sum += vector->array[i];
 
-    printf("Start: %d, end: %d, local sum: %d\n", vector->start, vector->end,
+    printf("Start: %d, end: %d, local sum: %lld\n", vector->start, vector->end,
            *local_sum);
     return (void*)local_sum;
 }
@@ -56,8 +61,8 @@ int main() {
     init_params(params);
     pthread_t threads[MAXTHREAD];
 
-    int* local_sum[MAXTHREAD];
-    int global_sum = 0;
+    long long int* local_sum[MAXTHREAD];
+    long long int global_sum = 0;
 
     // Start threads
     for (int i = 0; i < MAXTHREAD; i++) {
@@ -71,7 +76,7 @@ int main() {
         free(local_sum[i]);
     }
 
-    printf("Sum of vector is: %d\n", global_sum);
+    printf("Sum of vector is: %lld\n", global_sum);
 
     return 0;
 }

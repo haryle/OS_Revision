@@ -7,30 +7,31 @@ Hoang Son Le a1691819 7/10/20203
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAXTHREAD 4
-#define N 1000
+#ifndef MAXTHREAD
+    #define MAXTHREAD 4
+#endif
+
+#ifndef N
+    #define N 1000
+#endif
 
 int array[N];
-int result[MAXTHREAD];
+long long int result[MAXTHREAD];
+int params[MAXTHREAD];
 
-void init_array(int array[]) {
+void init_array(int array[], int size) {
     for (int i = 0; i < N; i++)
         array[i] = i;
 }
 
-void init_params(int params[]) {
-    for (int i = 0; i < MAXTHREAD; i++)
-        params[i] = i;
-}
 
 void* thread_sum(void* args);
 
 int main() {
     pthread_t threads[MAXTHREAD];
-    init_array(array);
-    int params[MAXTHREAD];
-    init_params(params);
-    int global_result = 0;
+    init_array(array, N);
+    init_array(params, MAXTHREAD);
+    long long int global_result = 0;
 
     for (int i = 0; i < MAXTHREAD; i++) {
         pthread_create(&threads[i], NULL, thread_sum, (void*) (params + i));
@@ -41,7 +42,7 @@ int main() {
         global_result += result[i];
     }
 
-    printf("Global result: %d\n", global_result);
+    printf("Global result: %lld\n", global_result);
 
     return 0;
 }
@@ -50,10 +51,10 @@ void* thread_sum(void* arg) {
     int id = *(int*)arg;
     int start = id * N / MAXTHREAD;
     int end = (id + 1) * N / MAXTHREAD;
-    int local_sum = 0;
+    long long int local_sum = 0;
     for (int i = start; i < end; i++)
         local_sum += array[i];
-    printf("Thread id: %d, start: %d, end: %d, local sum: %d\n", id, start, end,
+    printf("Thread id: %d, start: %d, end: %d, local sum: %lld\n", id, start, end,
            local_sum);
     result[id] = local_sum;
     return NULL;

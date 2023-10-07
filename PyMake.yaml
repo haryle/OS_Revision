@@ -1,20 +1,13 @@
-compile:
+sum:
   var:
     basic:
       program: null 
+      max_thread: 4
+      n: 1000
       src: code 
       out: out 
   cmd: 
-    gcc $(src)/$(program).c -o $(out)/$(program).o -pthread -Wall 
-
-execute:
-  var:
-    basic:
-      program: null 
-      src: code 
-      out: out 
-  cmd: 
-    - pymake run compile --program $(program) --src $(src) --out $(out)
+    - gcc -DMAXTHREAD=$(max_thread) -DN=$(n) -Wall -o $(out)/$(program).o $(src)/$(program).c
     - ./$(out)/$(program).o
 
 clean:

@@ -1,0 +1,23 @@
+compile:
+  var:
+    basic:
+      program: null 
+      src: code 
+      out: out 
+  cmd: 
+    gcc $(src)/$(program).c -o $(out)/$(program).o -pthread -Wall 
+
+execute:
+  var:
+    basic:
+      program: null 
+      src: code 
+      out: out 
+  cmd: 
+    - pymake run compile --program $(program) --src $(src) --out $(out)
+    - ./$(out)/$(program).o
+
+clean:
+  cmd:
+    - rm -rf out/*
+    - clear

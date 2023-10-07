@@ -29,7 +29,7 @@ void init_array(int array[]) {
         array[i] = i;
 }
 
-// Create params 
+// Create params
 void init_params(vector_t params[]) {
     for (int i = 0; i < MAXTHREAD; i++) {
         int start = i * N / MAXTHREAD;
@@ -69,7 +69,7 @@ int main() {
         pthread_create(&threads[i], NULL, getSum, &params[i]);
     }
 
-    // Join threads 
+    // Join threads
     for (int i = 0; i < MAXTHREAD; i++) {
         pthread_join(threads[i], (void**)&local_sum[i]);
         global_sum += *local_sum[i];

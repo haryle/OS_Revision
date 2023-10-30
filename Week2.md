@@ -374,3 +374,266 @@ Note that if there are 16 page frames each of size 4 bytes, the total size is 64
 Given each PTE is 4 bytes, a page can fit 512/4 = 2^9/2^2 = 2^7 PTEs.
 Thus the 7 LSB of VPN are used for page table index, which means 2^14 page directory entries. Since each entry is 4 bytes in size, the total size of the page directory is 4 * 2^14 = 2^16. Hence the number of pages required is 2^16/2^9 = 2^7 = 128 pages 
 
+## What is a swap space 
+
+Some space on the disk for moving pages in and out of physical memory.
+
+## What is a page fault event
+
+When trying to access a page that is not in physical memory
+
+## How is a page fault event triggered?
+
+Using a present bit to indicate that a page is not present for each PTE.
+
+## Is the OS or the hardware in change of handling page fault?
+
+The OS 
+
+## If a page is in swap space on disk, how does the OS know how to look for it?
+
+Using Page table entry. The bits in PTE usually used for PFN can be used for disk address. 
+
+## Describe the procedures of page fault handler:
+
+- IF a page is not present, the OS looks for its address under PFN in PTE.
+- The OS reads the page from disk 
+- Updates PFN to match the location used for the read page
+- Update present bit to True 
+- Retry the memory lookup 
+- TLB miss event
+- Reference the page and update TLP
+- Retry the memory lookup 
+- TLB hit event
+
+## What happen if memory is full 
+
+Upon a memory request for a page not in memory, The OS decides which page to evict from memory and put in swap space. This is decided by the OS page replacement policy. 
+
+## What is a page table register
+
+It is a register containing the address of the page table at page. 
+
+## How to determine page table entry address from VPN and PTBR
+
+`PTEAddr = PTBR + VPN * sizeof(PTE)`
+
+## How to calculate average memory access time (AMAT)
+
+= Cost of accessing memory + Probability of missing * Cost of accessing disk 
+
+## What is the optimal page replacement policy 
+
+Evict page that will be referenced the furthest in the future 
+
+## Why is it not possible to implement optimal page replacement policy?
+
+Because this requires future sight 
+
+## What are cold start misses?
+
+Compulsory misses, when pages are first loaded to cache 
+
+## Assuming the access pattern for pages as follows: 0, 1, 2, 0, 1, 3, 0, 3, 1, 2, 1. With a cache size of 3. Demonstrate FIFO, LRU, and Random page replacement policy 
+
+![](Figures/Figure22.2.png)
+The hit rate is 4/11 = 36%. If we ignore cold start (ignore the first miss to any given page), the hit rate is 4/(11-4)=57%
+
+![](Figures/Figure22.5.png)
+
+Hit rate is 6/11 = 54.5%. Coldstart hit rate is 6/7=85%
+
+## What principle is the LRU page replacement algorithm based on? 
+
+Principle of locality - codes that have been accessed may be accessed again in the future 
+
+## What kind of workload does FIFO and LRU perform worst at?
+
+Sequential access like for loop, then repeat.  i.e. loop from 0 to 49 then 0 again
+
+## What workload does LRU prefer?
+
+80-20 workload: 80% of the references to 20% of the pages (hot pages). 20% to 80% of the pages. 
+
+## What kind of workload does the 3 replacement algorithms perform equally at?
+
+No locality. 
+
+## Why is LRU difficult to implement in practice
+
+Upon each page access, we must remember that this page is access and moved to the top of the list. Hence the system has to do some work on every memory reference. This is expensive. 
+
+## Describe the clock algorithm 
+
+- Relies on hardware support with a use bit (reference bit)
+- Whenever a page is referenced (R/W) the use bit is set by hardware to 1.
+- The use bit is never cleaned.
+- When a page replacement occur, OS checks if current pointed to page P has a use bit of 1.
+- If P use bit is one, P use bit is set to 0 and clock hand moves to P + 1
+- If P use bit is 0, P is evicted and clock hand moves to P  + 1 
+
+## What happen to dirty page
+
+If a page is dirty (memory was modified), it must be written back to disk. Hence is an expensive process. 
+
+## Why does some algorithm prefer to evict clean pages over dity pages
+
+Dirty pages need to be written back to disk which is an expensive process
+
+## What is thrashing?
+
+When memory is oversubscribed and the memory demands exceed physical memory. When the system spends an excessive amount of time swapping data between RAM and disk storage due to memory demand and low available resources.
+
+## What can the OS do under thrashing 
+
+- Out of memory killer - kill processes that oversubscribe 
+- Or not run a subset of processes 
+
+## How can LRU be implemented with software 
+
+Keep a list of pages that have been access.
+
+When a page is reference, the page is moved to the top of the list.
+
+When a page is removed, simply remove bottom of the list
+
+Memory reference can be slow. Memory replacement is fast 
+
+## How can LRU be implemented with hardware 
+
+Hardware bit to track reference time.
+
+When page is referenced - store system clock in register 
+
+When page is replace - scan and find oldest clock 
+
+Fast on reference, slow on replacement
+
+## Name two differences between logical and physical addresses.
+Answer:
+- A logical address does not refer to an actual physical address; rather, it refers to an abstract address in an abstract address space. - A physicaladdress refers to an actual physical address in memory. 
+- A logical address is generated by the CPU and is translated into a physical address by the memory management unit(MMU). 
+- Therefore, physical addresses are generated by the MMU.
+
+## Answer the following question:
+
+![](Figures/Question9.10.png)
+
+4 KB = 2^12 bytes
+
+a. 2^32/2^12 = 2^20 pages 
+
+b. 512 * 2^20/2^12 = 512 * 2^8 = 128 * 2^10 = 128K entries
+
+## Answer the following question:
+
+![](Figures/Question9.9.png)
+
+4 KB = 2^12 bytes 
+
+a. 256 pages with 2^12 bytes per page. Total size of logical address = 2^8 * 2^12 = 2^20 bytes. Thus number of bits required is 20 bits
+
+b. 64 frames with 2^12 bytes per frame. Total size of physical address space = 2^6 * 2^12 = 2^18 bytes. Thus requires 18 bits.
+
+## Answer the following question: 
+![](Figures/Question9.8.png)
+
+a. 2^21/2^11 = 2^10 entries
+
+b. 2^16/2^11 = 2^5 entries 
+
+c. Maximum is 2^16 bytes or 64KB 
+
+
+## What is the effect of allowing two entries in a page table to point to the same page frame in memory? Explain how this effect could be used to decrease the amount of time needed to copy a large amount of memory from one place to another. What effect would updating some byte on one page have on the other page?
+
+By allowing two entries in a page table to point to the same page frame
+in memory, users can share code and data. If the code is reentrant, much
+memory space can be saved through the shared use of large programs
+such as text editors, compilers, and database systems. “Copying” large
+amounts of memory could be effected by having different page tables
+point to the same memory location.
+However, sharing of nonreentrant code or data means that any user
+having access to the code can modify it, and these modications would
+be reflected in the other user’s “copy.”
+
+## Answer This:
+
+![](Figures/Question9.4.png)
+
+a. 6 + 10 = 16 bits 
+
+b. 5 + 10 = 15 bites 
+
+## Under what circumstances do page faults occur? Describe the actions taken by the operating system when a page fault occurs.
+Answer:
+A page fault occurs when an access to a page that has not been brought
+into main memory takes place. The operating system veries the memory access, aborting the program if it is invalid. If it is valid, a free frame
+is located and I/O is requested to read the needed page into the free
+frame. Upon completion of I/O, the process table and page table are
+updated, and the instruction is restarted
+
+
+## Answer this: 
+
+![](Figures/Question10.2.png)
+
+a. n
+
+b. p 
+
+
+## Answer this:
+
+![](Figures/Question10.3.png)
+
+![](Figures/Question10.3_Solution.png)
+
+## Answer this: 
+
+![](Figures/Question10.5.png)
+
+a. 0EF
+
+b. 211
+
+c. D00
+
+d. EFF
+
+## Answer this:
+
+![](Figures/Question10.8.png)
+
+![](Figures/Question10.8_Solution.png)
+
+
+##  You have devised a new page-replacement algorithm that you think may be optimal. In some contorted test cases, Belady’s anomaly occurs. Is the new algorithm optimal? Explain your answer
+
+No. An optimal algorithm will not suffer from Belady’s anomaly
+because—by denition—an optimal algorithm replaces the page that
+will not be used for the longest time. Belady’s anomaly occurs when a
+page-replacement algorithm evicts a page that will be needed in the
+immediate future. An optimal algorithm would not have selected such
+a page
+
+## How many page fault and cold start in the following scenario? 
+
+![](Figures/Quiz2.9.png)
+
+4 page faults, 2 cold start 
+
+## Suppose that you want to use a paging algorithm that requires a reference bit (such as second-chance replacement or working-set model), but the hardware does not provide one. Sketch how you could simulate a reference bit even if one were not provided by the hardware, or explain why it is not possible to do so. If it is possible, calculate what the cost would be.
+Answer:
+You can use the valid/invalid bit supported in hardware to simulate
+the reference bit. Initially set the bit to invalid. On rst reference, a trap
+to the operating system is generated. The operating system will set a
+software bit to 1 and reset the valid/invalid bit to valid
+
+## Answer the following question: 
+
+![](Figures/Question10.9.png)
+
+- 18
+- 17
+- 13 

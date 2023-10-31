@@ -687,3 +687,75 @@ Use write buffering
 - Reduce traffic 
 - Increase write latency 
 
+## What are the issues with old file system 
+
+- Performance starts off bad then turns to worse
+- Treat a disk like a RAM - expensive positioning costs
+- Data blocks far from its inode -> expensive seek when read inode then write data 
+- Files are fragmented as the free space was not carefully managed.
+- Logically contiguous file would be accessed by going back and forth across the disk, hence reducing performance. 
+- Internal size was too small - bad for transfer as each block might have a positining overhead 
+
+## What are cylinder groups 
+
+- Cylinder connect the same track on each platter ( same distance from the centre). 
+
+
+## How does cylinder group help improve performance?
+
+Placing logically connected file on the same group. Accessing one after the other will not need long seeks. 
+
+## Describe the component of a single cylinder group 
+
+Similar to vsfs - Super block, inode bitmap, data bitmap, inode, data blocks.
+
+## How does FFS allocate directory 
+
+- Find cynlinder group with low number of allocated directories (balance number of directories between groups) and high number of free inodes (allocate a lot of files)
+
+## How does FFS allocate files
+
+- Allocate data blocks of a file in the same group as its inode to prevent long seek 
+- Place all files in the same directory in the same cynlinder group of the directory they are in. 
+
+## Why is the first FFS distribution better than the second 
+
+![](Figures/FFS_Distribution.png)
+
+![](Figures/Spread_distribution.png)
+
+For the first, files having the same parent dirs are on the same group as its parent. Hence directory walk is more efficient as it reduces seek time.
+
+## Why is there a need for large file exception in FFS?
+
+Large file could occupy and entire block, hence the inode block may contain only one file. 
+
+## How does FFS handle large file
+
+Stride large file across blocks in chunks
+
+![](Figures/FFS_Large_File_Exception.png)
+
+## How does FFS uses chunk size to alleviate seek cost with large file exception
+
+Use large chunk size,hence system spends most of the time transferring data from disk and little time seeking -> Amotisation
+
+## What is amotisation
+
+Increase the workdone per overhead to lessen the impact of overhead 
+
+## How does FFS determine blocksize for large file exception
+
+- The first 12 direct blocks on the same group as inode 
+- Each subsequent indirect block and its block data on different group.
+- Every 1024 blocks of the file in separate groups, except for the first group with direct pointers. 
+
+## What is the issue with small size files in FFS
+
+Internal fragmentation
+
+## What is FFS solution to small size files
+
+- Sub blocks - 512 byte little blocks that file ssytem could allocate to files. If a small size file of 1KB, occupy to sub blocks. Hence does not waste an entire 4KB. As the file grows, the system will continue allocating 512 byte blocks until it grows to 4KB, then all the sub blocks will be copied to a 4KB block. 
+
+- Will also use buffered writes -> issue write in 4KB chunks and avoid sub-block specialisation in most cases. 

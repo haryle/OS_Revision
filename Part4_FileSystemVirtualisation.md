@@ -759,3 +759,12 @@ Internal fragmentation
 - Sub blocks - 512 byte little blocks that file ssytem could allocate to files. If a small size file of 1KB, occupy to sub blocks. Hence does not waste an entire 4KB. As the file grows, the system will continue allocating 512 byte blocks until it grows to 4KB, then all the sub blocks will be copied to a 4KB block. 
 
 - Will also use buffered writes -> issue write in 4KB chunks and avoid sub-block specialisation in most cases. 
+
+## How does FFS optimise for sequential read - parameterisation
+
+Interleaving section. So that in sequential read, once a read from a sector is completed, the head is placed right at the next sector, without wasting rotation delay.
+
+Use in conjunction with a track buffer which reads an entire track. Thus subsequent read to the track will be served by the track buffer. 
+
+![](Figures/FFS_Paramtereised.png)
+

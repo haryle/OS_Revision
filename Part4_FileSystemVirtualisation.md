@@ -606,7 +606,7 @@ Metadata contained in an inode stored in inode block
 
 Actual data contained in a data block 
 
-## How does vsfs manage free space 
+## How does vsfs identify free space 
 
 With two bitmaps
 
@@ -752,7 +752,8 @@ Increase the workdone per overhead to lessen the impact of overhead
 
 ## What is the issue with small size files in FFS
 
-Internal fragmentation
+- Internal fragmentation when the file gets deallocated 
+- Positioning overhead when
 
 ## What is FFS solution to small size files
 
@@ -767,4 +768,349 @@ Interleaving section. So that in sequential read, once a read from a sector is c
 Use in conjunction with a track buffer which reads an entire track. Thus subsequent read to the track will be served by the track buffer. 
 
 ![](Figures/FFS_Paramtereised.png)
+
+## What is crash consistency problem 
+
+We want to move the system from one consistent state to another 
+
+However, system commits each write individually, so crashes can leave the system in inconsistent states. 
+
+## What is data redundancy 
+
+If A and B are two pieces of data and knowing A eliminmates some or all values B could take, there is a redundancy between A and B 
+
+## Give example of data redundancy
+
+Mirror disk (complete redundancy)
+
+Parity Blocks (partial redundancy)
+
+## If Superblock contains the total number of blocks and Inode contain pointer to data blocks, how is redundancy made 
+
+If superblock contains N blocks, then the pointer of inode takes value between 0 and N - 1. Anything above is invalid 
+
+## Advantages of redundancy 
+
+- Performance (RAID1)
+- Reliability (RAID5, RAID1, Superblock)
+
+## Disadvantage of redundancy
+
+- Capacity 
+- Redundancy 
+
+## If a filesystem is appending to a file, what must it update 
+- Inode 
+- Data bitmap 
+- Data block 
+
+## Describe what happen when system crashses with different update mode for file appending
+
+- Data block - nothing wrong 
+- Inode - point to garbage data, another file may overwrite 
+- Data bitmap - space leak
+- Data block and Data Bitmap - no pointer to data, space leak 
+- Inode and Data bitmap - garbage data 
+- Data block and Inode - inconsistent value of mem alloc, can be overwritten by another file
+
+## Describe the idea behind file system checker 
+
+Let inconsistency happens but fix at reboot. Scan the entire disk structure to discover and fix inconsistencies. 
+
+## Issues with file system checker 
+
+- Slow 
+- Doesn't make sense to scan the whole disk when operations are performed on a small set of blocks
+- Require instrinsic knowledge 
+- May not work all the time - consistent but may not be correct 
+
+## Why is journalling preferred over file system checker 
+- Does not read the entire disk
+- Get the correct state - atomic operation
+
+## What is the idea behind journalling 
+
+Use a log (journal block) to record transactions. Fight redundancy with redundancy 
+
+### What constitute a journal transaction 
+
+Transaction begins, inode write, bitmap write, data block write, transaction ends 
+
+## What is a journal commit block 
+
+Transaction end block 
+
+## What is physical logging 
+
+Putting the exact physical contents of the update in the journal 
+
+## What is logical logging 
+
+Putting a compact representation of the update in the journal 
+
+## What is checkpointing
+
+Once update has been written to the journal, they can be used to overwrite the data on disk.
+
+- Issue write to inode, data bitmap and data block once they are in the journal 
+
+## Why separate journal write and journal commit 
+
+- Journal write can be done in parallel, followed by a journal commit 
+
+- If journal commit is groupped together with journal write to be done in parallel, a crash could leave inconsistent state - i.e. write inode, write bitmap, write transaction begins and ends but crashes while writing data block which is not detected. 
+
+## How does a system recover from crash with write-ahead-log 
+
+Replay the transaction in order 
+
+## How does journaling optimisation give the illusion of inifite log?
+
+Circular log. Once a checkpoint is complete, the journal space must be freed - i.e. mark the oldest and newest non-checkpointed transactions in the log in a journal superblock. All other space is free. 
+
+## How does journaling optimisation reduce disk traffic 
+
+Coalesce individual transactions into a global transaction (buffering updates)
+
+## What is a journaling optimisation to reduce double disk write for data block 
+
+Metadata journaling - data block is written first. After the data block is written, the journal writes the metadata update - inode, bitmap. 
+
+## What is a journaling optimisation for small journal size 
+
+Use transaction header to store block number
+
+## How to use barrier 
+
+- Write journal updates 
+- (barrier)
+- Journal commit 
+- Checkpoint 
+- (barrier)
+- Journal commit 
+- Free
+
+## How to remove barrier between journal updates and journal commit 
+
+Make the commit block contain the checksum of the updates. If during recovery, checksum does not compute -> invalid entry 
+
+## Sumarise the physical journaling steps 
+
+- Write transaction updates 
+- Write transaction commits 
+- Checkpoint 
+- Free data 
+
+## Sumarise the metadata journaling steps 
+
+- Write data block to disk 
+- Write transaction updates 
+- Write transaction commits 
+- Checkpoint 
+- Free data 
+
+## What is the main idea behind Log structured file system 
+
+- When writting to disks, LFS buffers all updates in a memory segment. Once the segment is full, flushed to an unused part of the disk. 
+- Never overwrites existing data, but write write to free locations.
+- Because segments are large, write performance utilises write capacity. 
+
+## How does LFS write sequential data 
+
+- All updates are put in a segment that will be written to disk when file is full.
+- Need to write data block + inode + imap 
+
+## How does LFS enable finding inode 
+
+Using inode map - mapping between inode number and disk address of the most recent version of the inode. Hence will be implemented as an array. Anytime an inode is written, the imap is updated with new location.
+
+## Where is the imap placed?
+
+Next to where it is writing all of the other new information.
+
+## How is the inode map located?
+
+Using checkpoint region -> fixed location. Contains pointer to the latest pieces of the inode map. The CPR is updated periodically.
+
+## How does LFS enable reading a file
+
+- Read checkpoint region to find latest inode map 
+- Cache inode map in memory 
+- Reference the inode and file
+
+## How does LFS store directories 
+
+- Imap contains address to inode of dir and files
+- Inode of dir contains pointer to data of dir 
+- Data of dir contains mapping of file (name: inode)
+- Use mapping of file to locate file inode and read file 
+
+![](Figures/LFS_Directory_Storage.png)
+
+## How does LFS handle garbage collection 
+
+The inode points to the data block of different versions - i.e. array pointing to current data block and previous data block -> versioning file system 
+
+Periodically LFS cleaner reads in old segments and determine which blocks are live. Write new segments with just the live blocks and freeing up the new one. 
+
+![](Figures/LFS_File_Versioning.png)
+
+## How does LFS determine which block is live 
+
+Use segment summary block - contains the inode and offset (which block of the file this is).
+
+- Look in Segment summary, find inode N and offset T.
+- Look imap to find inode of N and read N 
+- Use the offset T to look in the inode to see whether the Tth block is on disk. If same -> live.
+
+![](Figures/FFS_SS.png)
+
+## How does LFS determine which segment to clean 
+
+- Clean most empty 
+- Clean coldest - undergoing least change
+
+## What is recursive write issues 
+
+For every data update, updates propage all the way to tree root
+
+## How does LFS avoid recursive write 
+
+The inode value for the update remains the same. The directory is therefore not updated. Only the imap structure is updated. 
+
+## How does LFS handle logging 
+
+Updates put to segment and when full, begins to write.
+
+Write written to log - i.e. checkpoint region points to a head and tail segment and each segment points to the next to be written. 
+
+LFS writes to CR every 30s, the last consistent snapshot of the file system may be quite old. Thus upon reboot, LFS recover by reading in the checkpoint region, the imap it points to and subsequent files and directory. Some updates may be lost.
+
+Also use roll forward. Start with latest CR, find end of log (included in CR) use that to read through next segments and see if valid updates within. If there are LFS updates the file accordingly and recover.
+
+LFS keeps two CRs, one at either end and writes to them alternately. When updating the CR with the latest pointer to inode map, it first writes a header (timestamp) then the body of CR then one last block. If crashes during CR update, LFS detects by seeing an inconsistent pair of Timestamp. Always choose to use the most recent CR with consistent timestamps. 
+
+## Answer This 
+
+![](Figures/Q4q1.png)
+
+Sequential access faster because it minimises head movement and rotational latency 
+
+## Answer This 
+
+![](Figures/Q4q2.png)
+
+DMA engine, device driver, device controller, memory mapped IO 
+
+## Answer This 
+
+![](Figures/Q4q3.png)
+
+CPU directly manage data transfer
+
+## Answer This 
+
+![](Figures/Q4q4.png)
+
+Number of platters 
+
+## Answer This 
+
+![](Figures/Q4q5.png)
+
+Platters, tracks 
+
+## Answer This 
+
+![](Figures/Q4q6.png)
+
+Cylinder head sector 
+
+## Answer This 
+
+![](Figures/Q4q7.png)
+
+Aligns read write heads with specific tracks to optimise access 
+
+## Answer This 
+
+![](Figures/Q4q8.png)
+
+It relies on virtual addressing scheme based on block numbers 
+
+## Answer This 
+
+![](Figures/Q4q9.png)
+
+
+## Answer This 
+
+![](Figures/Q4q10.png)
+
+RAID5
+
+## Answer This 
+
+![](Figures/Q5q1.png)
+
+Symbolic links can refer to files on other filesystems, whereas hard links can only refer to files on the same filesystem.
+
+
+
+## Answer This 
+
+![](Figures/Q5q2.png)
+
+2^24
+
+
+
+## Answer This 
+
+![](Figures/Q5q3.png)
+
+
+
+## Answer This 
+
+![](Figures/Q5q4.png)
+
+Often, files cannot be expanded in a contiguous fashion without moving them to another location on disk.
+
+## Answer This 
+
+![](Figures/Q5q5.png)
+
+FAT supports both sequential and random access, but random access is slower on average
+
+## Answer This 
+
+![](Figures/Q5q6.png)
+
+So that applications can easily work with many different types of filesystems.
+
+## Answer This 
+
+![](Figures/Q5q7.png)
+
+The inode structure stores metadata about files, including file permissions, timestamps, and disk block pointers.
+
+## Answer This 
+
+![](Figures/Q5q8.png)
+
+It ensures that on-disk structures remain constant. 
+
+## Answer This 
+
+![](Figures/Q5q9.png)
+
+They improve write performance and simplify crash recovery.
+
+
+## Answer This 
+
+![](Figures/Q5q10.png)
+
+Block/cylinder groups help distribute and manage disk space efficiently and contain a portion of the file system metadata.
 

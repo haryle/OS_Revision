@@ -238,7 +238,9 @@ Time to completion: (13+14+15)/3 = 14s
 
 ## Why is context switching expensive?
 
-Because when running, a lot of prediction data - i.e. TLB, CPU caches, branch predictors are flushed, hence will take time to rebuld and hence expensive. 
+- There are costs associated with saving registers 
+- There are costs associated with restoring registers 
+- Cache information may start from cold so incur a lot of performance overhead 
 
 ## What is a fair scheduling policy:
 
@@ -469,3 +471,62 @@ Low priority queues contain long running jobs that are CPU bound.
 
 Hence interactive jobs can have high priority without starving other processes. Batch jobs can be run without expensive context switching. 
 
+## Answer the following
+
+![](Figures/Q1q1.png)
+
+blocked
+
+## Answer the following
+
+![](Figures/Q1q2.png)
+
+memory protection 
+
+## Answer the following
+
+![](Figures/Q1q3.png)
+
+sigkill
+
+## Answer the following
+
+![](Figures/Q1q4.png)
+
+code segment, data segment, file descriptor table 
+
+## Answer the following
+
+![](Figures/Q1q5.png)
+
+all processes share the same thread
+
+## Answer the following
+
+![](Figures/Q1q6.png)
+
+turn around time
+
+## Answer the following
+
+![](Figures/Q1q7.png)
+
+when the cpu time slice expires
+
+## Answer the following
+
+![](Figures/Q1q8.png)
+
+amount of time running 
+
+## Answer the following
+
+![](Figures/Q1q9.png)
+
+FCFS
+
+## Answer the following
+
+![](Figures/Q1q10.png)
+
+Go up or down depending on other factors 

@@ -77,7 +77,7 @@ Coarse-grained - one big lock to lock an object everytime a critical section is 
 
 Fine-grained - locks for different variables providing more control 
 
-## How can disabling interrupt allows atomicity in single threaded processor
+## How can disabling interrupt allows atomicity in single processor
 
 By disabling interrupt, context switching is disable, ensuring that only one thread enters the critical section
 

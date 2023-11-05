@@ -1114,3 +1114,31 @@ They improve write performance and simplify crash recovery.
 
 Block/cylinder groups help distribute and manage disk space efficiently and contain a portion of the file system metadata.
 
+
+## Is IO Controller Hardware 
+
+Yes
+
+## What are the two different approaches to free space management 
+
+Bit vector and linked list 
+
+## What are the advantages of using bitmap for free space management 
+
+Simplicity and efficiency in finding free block 
+
+## How is linked list used for free space management 
+
+Link together all the free blocks, keeping a pointer to the first free block in a special location in the file. The first block contains a pointer to the next block and so on. 
+
+## What is the disadvantage of using linked list for free space management 
+
+Not efficient as we would require IO on HDD for traversal
+
+## What is an advantage of contiguous allocation 
+
+Fast memory addressing 
+
+## What is disadvantage of contiguous allocation 
+
+May not fit in memory 

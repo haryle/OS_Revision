@@ -174,7 +174,7 @@ Translate virtual address of pages to their corresponding physical addresses.
 
 ![](Figures/Figure18.2.png)
 
-- With 64 bits address space, 6 bits are required to represent an address. With 16 bits per page, there are 4 pages per address space, so 2 bits are required for VPN, 4 bits for offsets.
+- With 64 bytes address space, 6 bits are required to represent an address. With 16 bytes per page, there are 4 pages per address space, so 2 bits are required for VPN, 4 bits for offsets.
 - 21 = 16 + 5 = 010101. VPN is 01 (corresponding to virtual page 1), and offset is 0101 = 5.
 - From Figure 18.2, page frame 7 contains page 1 of address space. Thus the page frame number (PFN) is 7 = 111.
 - Thus the physical address: 1110101 or 117 
@@ -359,7 +359,7 @@ Hence smaller table but takes more time for look up on a TLB miss.
 
 Hence 2^8 entries are required. 
 
-## Assume address space of 14 bits with 64 byte pages. If each PTE is 4bytes, 
+## Assume address space of 14 bits with 64 byte pages. If each PTE is 4bytes, how many pages does the page directory table contain 
 
 Each PTE is 4 bytes, one page is 64 bytes, hence one page can hold 64/4=16 PTEs. Since there are 256 entries, there can be 256/64 = 16 page frames.
 
@@ -642,7 +642,7 @@ software bit to 1 and reset the valid/invalid bit to valid
 
 Virtual address 
 
-## WEhat is the address that gets translated by the MMU
+## What is the address that gets translated by the MMU
 
 Physical address
 
@@ -684,3 +684,4 @@ Physical address
 ## Answer this
 
 ![](Figures/Q2q9.png)
+
